@@ -22,25 +22,11 @@
             touch-action: manipulation;
         }
 
-        /* Force mobile responsive behavior in GAS */
-        @-webkit-viewport {
-            width: device-width;
-        }
-
-        @-moz-viewport {
-            width: device-width;
-        }
-
-        @-ms-viewport {
-            width: device-width;
-        }
-
-        @-o-viewport {
-            width: device-width;
-        }
-
-        @viewport {
-            width: device-width;
+        /* Google Apps Script Mobile Responsive Fixes */
+        html {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            touch-action: manipulation;
         }
 
         :root {
@@ -815,7 +801,6 @@
         .btn {
             padding: 8px 16px;
             font-size: 0.9rem;
-        }
         }
     </style>
 </head>
