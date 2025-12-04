@@ -4379,7 +4379,7 @@
             if (dashboardSection && !document.getElementById('dashboardRefreshBtn')) {
                 const refreshBtn = document.createElement('button');
                 refreshBtn.id = 'dashboardRefreshBtn';
-                refreshBtn.className = 'btn btn-primary btn-sm mb-3';
+                refreshBtn.className = 'btn btn-primary btn-sm mb-3 me-2';
                 refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Dashboard';
                 refreshBtn.onclick = () => {
                     refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
@@ -4389,18 +4389,72 @@
                         showAlert('Dashboard refreshed with latest data!', 'success');
                     }, 2000);
                 };
-
+                
+                // Add debug button too
+                const debugBtn = document.createElement('button');
+                debugBtn.className = 'btn btn-info btn-sm mb-3';
+                debugBtn.innerHTML = '<i class="fas fa-bug"></i> Debug Firebase';
+                debugBtn.onclick = debugFirebaseData;
+                
                 // Add button at the top of dashboard
                 const firstChild = dashboardSection.firstElementChild;
                 if (firstChild) {
                     dashboardSection.insertBefore(refreshBtn, firstChild);
+                    dashboardSection.insertBefore(debugBtn, firstChild);
                 } else {
                     dashboardSection.appendChild(refreshBtn);
+                    dashboardSection.appendChild(debugBtn);
                 }
             }
         }
 
-        // Form OTP Verification State
+        // Debug Firebase data function
+        function debugFirebaseData() {
+            console.log('🐛 DEBUGGING: Checking Firebase data...');
+            
+            if (!firebaseAvailable) {
+                console.log('❌ Firebase not available!');
+                alert('Firebase not available!');
+                return;
+            }
+            
+            // Check customers data
+            database.ref('customers').once('value', (snapshot) => {
+                const customers = snapshot.val() || {};
+                console.log('🐛 DEBUG: Raw customers data:', customers);
+                console.log('🐛 DEBUG: Number of customers:', Object.keys(customers).length);
+                
+                // Check payment status for each customer
+                Object.entries(customers).forEach(([id, customer], index) => {
+                    console.log(`🐛 Customer ${index + 1}:`, {
+                        id: id,
+                        name: customer.customerName,
+                        paymentStatus: customer.paymentStatus,
+                        paymentAmount: customer.paymentAmount,
+                        stylistCode: customer.stylistCode
+                    });
+                });
+            });
+            
+            // Check stylists data  
+            database.ref('stylists').once('value', (snapshot) => {
+                const stylists = snapshot.val() || {};
+                console.log('🐛 DEBUG: Raw stylists data:', stylists);
+                console.log('🐛 DEBUG: Number of stylists:', Object.keys(stylists).length);
+                
+                // Check stylist codes
+                Object.entries(stylists).forEach(([id, stylist], index) => {
+                    console.log(`🐛 Stylist ${index + 1}:`, {
+                        id: id,
+                        name: stylist.stylistName,
+                        code: stylist.stylistCode,
+                        location: stylist.location
+                    });
+                });
+            });
+            
+            alert('Check console for detailed Firebase debug info!');
+        }        // Form OTP Verification State
         let formOTPState = {
             stylist: {
                 phone: null,
