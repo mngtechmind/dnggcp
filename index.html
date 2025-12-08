@@ -804,6 +804,7 @@
             padding: 8px 16px;
             font-size: 0.9rem;
         }
+
         #stylistsTable th {
             align-content: center;
             text-align: center;
@@ -1477,7 +1478,9 @@
                                             </th>
                                             <th onclick="sortTable(5)">Bank Details <i class="fas fa-sort"></i></th>
                                             <th onclick="sortTable(6)">Balance Amount <i class="fas fa-sort"></i></th>
-                                            <th onclick="sortTable(7)" class="p-1">Total Amount <i class="fas fa-sort"></i><br><small style="font-size: 8px;">(Paid + Unpaid)</small></th>
+                                            <th onclick="sortTable(7)" class="p-1">Total Amount <i
+                                                    class="fas fa-sort"></i><br><small style="font-size: 8px;">(Paid +
+                                                    Unpaid)</small></th>
                                             <!-- <th>Actions</th> -->
                                         </tr>
                                     </thead>
@@ -4638,7 +4641,7 @@
                                 <td>Hair Braiding</td>
                                 <td><strong>₦${paymentAmount.toLocaleString()}</strong></td>
                                 <td><span class="badge bg-${statusClass}">${statusText}</span></td>
-                                <td>${new Date(customer.paymentDate || Date.now()).toLocaleDateString()}</td>
+                                <td>${new Date(customer.paymentDate || '').toLocaleDateString()}</td>
                             </tr>
                         `;
                         tableBody.innerHTML += row;
@@ -6394,7 +6397,7 @@
                     bankName: update.bankName,
                     bankStatus: update.bankStatus,
                     accountNumber: update.accountNumber,
-                    paymentDate: update.paymentDate,
+                    paymentDate: update.paymentDate || '',
                     lastUpdated: new Date().toISOString()
                 }).then(() => {
                     successCount++;
@@ -6405,7 +6408,8 @@
                 });
             });
 
-            Promise.all(updatePromises).then(() => {console.log('Batch payment updates completed');
+            Promise.all(updatePromises).then(() => {
+                console.log('Batch payment updates completed');
                 showAlert(`Payment status updated successfully! ✅ ${successCount} updated, ❌ ${errorCount} failed`, 'success');
 
                 // Auto-refresh dashboard data after CSV upload with longer delay
@@ -8039,7 +8043,7 @@
             }
         }
 
-        function refreshEntireDashboard() {console.log('🔄 Refreshing entire dashboard...');
+        function refreshEntireDashboard() {//console.log('🔄 Refreshing entire dashboard...');
             // Refresh all dashboard sections
             updateDashboardStats();
             loadStylists();
@@ -8047,7 +8051,7 @@
             loadPaymentsTable();
             loadPaymentRequestsData();
 
-            console.log('✅ Dashboard refreshed successfully');
+            //console.log('✅ Dashboard refreshed successfully');
             showAlert('Dashboard refreshed successfully', 'info');
         }
 
@@ -8102,7 +8106,7 @@
             }
 
             if (!firebaseAvailable) {
-                showAlert('Firebase connection required to update payment status', 'danger');
+                showAlert('connection failed required to update payment status', 'danger');
                 return;
             }
 
@@ -8122,7 +8126,7 @@
                     const key = h.toLowerCase().replace(/\s+/g, '');
                     if (key.includes('beneficiary')) colMap.beneficiaryName = i;
                     if (key.includes('bank')) colMap.bank = i;
-                    if (key.includes('toaccount')) colMap.toAccount = i; 
+                    if (key.includes('toaccount')) colMap.toAccount = i;
                     if (key.includes('datecreated')) colMap.datecreated = i;
                     if (key === 'amount') colMap.amount = i;
                     if (key.includes('narration') || key.includes('transactionid')) colMap.narration = i;
@@ -8147,10 +8151,10 @@
                     if (lines[i].trim()) {
                         const cells = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
                         if (cells.length >= 6 && colMap.narration !== undefined && colMap.paymentStatus !== undefined) {
-                            console.log("Processing CSV Row:", colMap, cells);
+                            // console.log("Processing CSV Row:", colMap, cells);
                             csvData.push({
                                 beneficiaryName: cells[colMap.beneficiary] || '',
-                                dateCreated: cells[colMap.datecreated] || new Date().toISOString(),
+                                dateCreated: cells[colMap.datecreated] || '',
                                 bank: cells[colMap.bank] || '',
                                 accountNumber: cells[colMap.toAccount] || '',
                                 amount: parseFloat(cells[colMap.amount]) || 0,
@@ -8173,13 +8177,14 @@
                 let updatePromises = [];
                 let updatedCount = 0;
                 let notFoundCount = 0;
-                console.log("CSV Data to Process:", csvData);
-                csvData.forEach(row => {console.log("row Data:", row);
+                // console.log("CSV Data to Process:", csvData);
+                csvData.forEach(row => {
+                    console.log("row Data:", row);
                     const customerId = row.narration || 'N/A'; // CUST_ID from narration column
                     const stlAccount = row.accountNumber || 'N/A'; // Stylist Bank Account Number
                     const stlBankName = row.bank || 'N/A'; // Stylist Bank Code
                     const stlApprovalStatus = row.approvalstatus || 'N/A'; // approvalStatus
-                    const stlDateCreated = row.datecreated || new Date().toISOString(); // Date Created
+                    const stlDateCreated = row.datecreated || ''//new Date().toISOString(); // Date Created
                     const stlBankStatus = row.paymentStatus || 'N/A';
                     const updatePromise = database.ref('customers').child(customerId).once('value')
                         .then(snapshot => {
@@ -8196,7 +8201,7 @@
                                     bankName: stlBankName,
                                     bankStatus: stlBankStatus,
                                     accountNumber: stlAccount,
-                                    paymentDate: stlDateCreated,
+                                    paymentDate: stlDateCreated || '',
                                     lastUpdated: new Date().toISOString(),
                                     updatedViaCSV: true
                                 }).then(() => {
@@ -8217,9 +8222,13 @@
                     .then(() => {
                         // Close modal
                         bootstrap.Modal.getInstance(document.getElementById('csvUploadModal')).hide();
-
+                        //csv file reset
+                        fileInput.value = '';
+                        document.getElementById('csvPreview').style.display = 'none';
+                        document.getElementById('uploadCSVData').disabled = true;
                         // Show results
-                        if (updatedCount > 0) {console.log("Updated Count:", updatedCount);
+                        if (updatedCount > 0) {
+                            console.log("Updated Count:", updatedCount);
                             showAlert(`Successfully updated ${updatedCount} payment status(es). ${notFoundCount} records not found or had mismatched data.`, 'success');
 
                             // Refresh entire dashboard
